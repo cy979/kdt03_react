@@ -19,14 +19,14 @@ import Gallery from './13/Gallery';
 import Festival from './14_1/Festival';
 import RouteMain from './15/RouteMain';
 import Charge from './16/Charge';
-import Header from './components/header';
-import Footer from './components/footer';
+import Header from './components/Header';
+import Footer from './components/Footer';
 import FestivalContents from './14_1/FestivalContents';
 import ChargerStat from './16/ChargerStat';
 import CharageDetail from './16/CharageDetail';
 //import JotaiCnt from './17/JotaiCnt';
 import TodoList from './18_1/TodoList';
-import Subway from './19/subway';
+import Subway from './19/Subway';
 
 export default function App() {
   return (
