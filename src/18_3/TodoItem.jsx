@@ -4,7 +4,7 @@ import TailButton from "../components/TailButton"
 import { useState } from "react";
 
 
-export default function TodoItem({todo, todos, setTodos}) {
+export default function TodoItem({todo, getTodos}) {
     // const setTodos = useSetAtom(todosAtom);
     const [isEdit, setIsEdit] = useState(false);
     const [editText, setEditText] = useState(todo.text);
@@ -25,70 +25,74 @@ export default function TodoItem({todo, todos, setTodos}) {
             }
     }
 
-    // 저장
-    const handleSave = () => {
-        const newItem = todos.map(t => t.id == todo.id ?    
-                            {...t, text : editText} : t)
-        setTodos(newItem);
-        setIsEdit(false);
+    const handleSave = async () => {
+    const { error } = await supabase
+      .from('todos')
+      .update({ text: editText })
+      .eq('id', todo.id);
+    if (error) {
+      console.error('Error toggling todo:', error);
+    } else {
+      getTodos();
+      setIsEdit(false);
     }
+  }
 
-    // 취소
-    const handleCancel = () => {
-        setEditText(todo.text);
-        setIsEdit(false);
-    }
-    
-    //삭제
-    const handleDelete = async () => {
-      const { error } = await supabase
+  const handleCancel = () => {
+    setIsEdit(false);
+    setEditText(todo.text);
+  }
+
+  const handleDelete = async () => {
+    const { error } = await supabase
       .from('todos')
       .delete()
       .eq('id', todo.id);
-      if (error) {
+    if (error) {
       console.error('Error deleting todo:', error);
-      } else {
+    } else {
       getTodos();
-      }
     }
- 
+  }
 
   return (
-    <div className="w-full max-w-3xl flex justify-center items-center my-4">
-         <input type="checkbox"
-             className="w-5 h-5 cursor-pointer"
-             checked={todo.completed}
-             onChange={handleToggle} />
+    <div className="w-full max-w-3xl flex justify-center items-center 
+                    my-4">
+      <input type="checkbox"
+        className="w-5 h-5 cursor-pointer"
+        checked={todo.completed}
+        onChange={handleToggle} />
 
-      { isEdit ? <input type="text"
-                        value={editText}
-                        onChange={(e) => setEditText(e.target.value)}
-                        className="flex-1 p-2 mx-2 border border-gray-200
+      {isEdit ? <input type="text"
+        value={editText}
+        onChange={(e) => setEditText(e.target.value)}
+        className="flex-1 p-2 mx-2 border border-gray-200
                         rounded-sm
                         focus:outline-none focus:ring-2 focus:ring-blue-600"
-                  />
-               : <span className={`flex-1 p-2 ${ todo.completed ? "line-through" : ""}`}>
-                  {todo.text}
-                </span>
+      />
+        : <span className={`flex-1 p-2 ${todo.completed ? "line-through" : ""}`}>
+          {todo.text}
+        </span>
       }
       {
         isEdit ? <>
-                  <TailButton color="lime" 
-                        caption="저장"
-                        onHandle={handleSave} />
-                  <TailButton color="orange" 
-                        caption="취소"
-                        onHandle={handleCancel} />
-                 </>
-               : <>
-                  <TailButton color="lime" 
-                        caption="수정"
-                        onHandle={handleToggle} />
-                  <TailButton color="orange" 
-                        caption="삭제"
-                        onHandle={handleDelete} />
-                 </>
+          <TailButton color="lime"
+            caption="저장"
+            onHandle={handleSave} />
+          <TailButton color="orange"
+            caption="취소"
+            onHandle={handleCancel} />
+        </>
+          : <>
+            <TailButton color="lime"
+              caption="수정"
+              onHandle={() => setIsEdit(true)} />
+            <TailButton color="orange"
+              caption="삭제"
+              onHandle={handleDelete} />
+          </>
       }
+
     </div>
   )
 }

@@ -2,21 +2,14 @@
 import { supabase } from "../supabase/client";
 import TodoInput from "./TodoInput"
 import TodoItem from "./TodoItem"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 
 export default function TodoList() {
   const [todos, setTodos] = useState([]);
   const [completed, setCompleted] = useState(0);
   const [incomplete, setIncomplete] = useState(0);
 
-  const handleSave = (newItem) => {
-    setTodos(newItem);
-    localStorage.setItem("todo", JSON.stringify(newItem));
-
-  }
-
-  const getTodos = async () => {
-
+ const getTodos = async () => {
     const { data, error } = await supabase
       .from('todos')
       .select('*')
@@ -26,53 +19,34 @@ export default function TodoList() {
     } else {
       setTodos(data);
     }
+
   }
 
-
   useEffect(() => {
-
-    // const newItem = {
-    //   id: 1,
-    //   text: "리액트 공부",
-    //   completed: false
-    // }
-
-    // //JSON 라이브러리 사용
-    // // 자바스크립트 객체 -> 문자열 (setter)
-    // localStorage.setItem("todo", JSON.stringify(newItem));
-
-    //console.log(localStorage.getItem("todo"));
-    // 문자열 -> 자바스크립트 객체 (getter) , string->object로 가져오기
-    const localTodos = JSON.parse(localStorage.getItem("todo")) || [];
-    setTodos(localTodos);
-
-    //console.log(localStorage.getItem("todo"));
+    getTodos();
   }, []);
 
-  //todos 가 있으므로 setC, setIc 생성가능
-  // todos 여부로 
   useEffect(() => {
-
     setCompleted(todos.filter(todo => todo.completed).length);
-    setIncomplete(todos.filter(todo => !todo.completed).length);
+    setIncomplete(todos.filter(todo => !todo.completed).length)
   }, [todos]);
 
-
   return (
-    <div className="w-full flex flex-col justify-start items-center ">
-      <h1 className="w-full max-w-3xl font-bold text-center mt-2" >할일목록(Superbase Fetch함수)</h1>
-      <div className="w-full max-w-3xl p-5 my-2 font-bold border bg-amber-100">
-        전체 : {todos.length}개 |
-        완료 : {completed}개 |
-        미완료 :{incomplete}개
+    <div className="w-full flex flex-col justify-start items-center">
+      <h1 className="w-full max-w-3xl text-2xl font-bold text-center mt-10">
+        할일 목록(Supabase Client 라이브러리사용)
+      </h1>
+      <div className="w-full max-w-3xl
+                     p-5 my-2 font-bold
+                     bg-amber-50 border border-amber-300">
+        전체 : {todos.length} 개 |
+        완료 : {completed} 개 |
+        미완료: {incomplete} 개
       </div>
-      <TodoInput todos={todos} setTodos={handleSave} />
+      <TodoInput getTodos={getTodos} />
       {
-        // map으로 가져옴 TodoItem의 todos, setTodos        
-        todos && todos.map(todo => <TodoItem key={todo.id}
-          todo={todo}
-          todos={todos}
-          setTodos={handleSave} />)
+        todos.length != 0 && todos.map(todo => <TodoItem key={todo.id} todo={todo}
+          getTodos={getTodos} />)
       }
     </div>
   )

@@ -3,11 +3,12 @@ import TailButton from "../components/TailButton"
 // import { todosAtom } from "./atomsTodo"
 import { useState } from "react";
 
+const supabaseUrl = import.meta.env.VITE_SUPABSE_URL ;
+const supabaseKey = import.meta.env.VITE_SUPABSE_KEY ;
 
-export default function TodoItem({todo, todos, setTodos}) {
-    // const setTodos = useSetAtom(todosAtom);
-    const [isEdit, setIsEdit] = useState(false);
-    const [editText, setEditText] = useState(todo.text);
+export default function TodoItem({todo, getTodos}) {
+  const [isEdit , setIsEdit] = useState(false) ;
+  const [editText, setEditText] = useState(todo.text) ;
     
     // Re
     // prev.map
@@ -20,88 +21,70 @@ export default function TodoItem({todo, todos, setTodos}) {
 //     }
 
     // 저장
-    const handleSave = () => {
-        const newItem = todos.map(t => t.id == todo.id ?    
-                            {...t, text : editText} : t)
-        setTodos(newItem);
-        setIsEdit(false);
+    const handleToggle = async() => {
+    const resp = await fetch(`${supabaseUrl}/rest/v1/todos?id=eq.${todo.id}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json' 
+      },
+      body : JSON.stringify({completed : !todo.completed})
+    });
+     
+    if (resp.ok) {
+      getTodos() ; 
     }
-
-    // 취소
-    const handleCancel = () => {
-        setEditText(todo.text);
-        setIsEdit(false);
+    else {
+      console.log(resp.statusText);
     }
-    
-    //삭제
-    //필터로 t.id가 != todo.id 인것만 넣음
-      // const handleDelete = () => {
-      // const newItem = todos.filter(t => t.id != todo.id);
-      // setTodos(newItem);
-        
-      //         }
+  }
 
-      const handleAdd = async () => {
-      if (inRef.current.value == "") {
-            alert("값을 입력해 주세요.");
-            inRef.current.focus();
-            return
-      }
-      
-      const response = await fetch(`${supabaseUrl}/rest/v1/todos`, {
-            method: 'POST',
-            headers: {
-            'apikey': supabaseKey,
-            'Authorization': `Bearer ${supabaseKey}`,
-            'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ text: inRef.current.value, completed: false })
-      });
-      
-      if (response.ok) {
-            getTodos();
-            inRef.current.value = "";
-            inRef.current.focus();
-      } else {
-            console.log('Error adding todo:', response.statusText);
-      }
-      }
-      
-      const handleToggle = async () => {
-      const response = await fetch(`${supabaseUrl}/rest/v1/todos?id=eq.${todo.id}`, {
-            method: 'PATCH',
-            headers: {
-            'apikey': supabaseKey,
-            'Authorization': `Bearer ${supabaseKey}`,
-            'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ completed: !todo.completed })
-      });
-      if (response.ok) {
-            getTodos();
-      } else {
-            console.error('Error toggling todo:', response.statusText);
-      }
-      }
-      
-      const handleDelete = async () => {
-      const response = await fetch(`${supabaseUrl}/rest/v1/todos?id=eq.${todo.id}`, {
-            method: 'DELETE',
-            headers: {
-            'apikey': supabaseKey,
-            'Authorization': `Bearer ${supabaseKey}`
-            }
-      });
-      if (response.ok) {
-            getTodos();
-      } else {
-            console.error('Error deleting todo:', response.statusText);
-      }
-      }
+  const handleSave = async() => {
+    const resp = await fetch(`${supabaseUrl}/rest/v1/todos?id=eq.${todo.id}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json' 
+      },
+      body : JSON.stringify({text : editText})
+    });
+     
+    if (resp.ok) {
+      getTodos() ; 
+      setIsEdit(false) ;
+    }
+    else {
+      console.log(resp.statusText);
+    }
+  }
 
+  const handleCancel = () => {
+    setIsEdit(false) ;
+    setEditText(todo.text) ;
+  }
+
+  const handleDelete = async() => {
+    const resp = await fetch(`${supabaseUrl}/rest/v1/todos?id=eq.${todo.id}`, {
+      method: 'DELETE',
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}` 
+      } 
+    });
+     
+    if (resp.ok) {
+      getTodos() ;  
+    }
+    else {
+      console.log(resp.statusText);
+    }
+  }
   return (
-    <div className="w-full max-w-3xl flex justify-center items-center my-4">
-         <input type="checkbox"
+    <div className="w-full max-w-3xl flex justify-center items-center 
+                    my-4">
+      <input type="checkbox"
              className="w-5 h-5 cursor-pointer"
              checked={todo.completed}
              onChange={handleToggle} />
@@ -135,6 +118,7 @@ export default function TodoItem({todo, todos, setTodos}) {
                         onHandle={handleDelete} />
                  </>
       }
+      
     </div>
   )
 }
